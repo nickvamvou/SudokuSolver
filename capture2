@@ -1,0 +1,190 @@
+#include <stdio.h>
+#include "sudoku_io.h"
+#include <math.h>
+#include <stdlib.h>
+
+int solutionCounter = 0;
+
+struct Sudoku sudCopy;
+
+int cellAccepted(struct Sudoku sud, int row, int col, int temp){
+
+  int smallLength = sqrt(sud.length);
+  int startingRow = (row/smallLength) * smallLength;
+  int startingCol = (col/smallLength) * smallLength;
+
+  //printf("Number checking should be 0 %d\n", sud.sudoku[row][col]);
+
+  for(int i = 0; i < sud.length; i++){
+
+      if(sud.sudoku[i][col] == temp){
+        //printf("%s\n", "It goes here 1st");
+        return 0;
+      }
+      if(sud.sudoku[row][i] == temp){
+        //printf("%s\n", "It goes here 2nd");
+        return 0;
+      }
+      //printf("Values %d\n", sud.sudoku[startingRow + (i % smallLength)][startingCol + (i/smallLength)]);
+      if(sud.sudoku[startingRow + (i % smallLength)][startingCol + (i/smallLength)] == temp){
+        return 0;
+      }
+  }
+  return 1;
+}
+
+
+void copySolutionFound(struct Sudoku sud){
+  printf("%s\n", "Does it go here?");
+  int sudokuLength = sud.length;
+  int **sudokuCopy = (int**) malloc(sudokuLength * sizeof(int *));
+
+  for(int i = 0; i < sudokuLength; i++){
+    sudokuCopy[i] = (int*) malloc(sudokuLength * sizeof(int));
+  }
+
+    for(int i = 0; i < sud.length; i++){
+      for(int j = 0; j < sud.length; j++){
+        sudokuCopy[i][j] = sud.sudoku[i][j];
+      }
+    }
+
+    sudCopy.length = sudokuLength;
+    //printf("Sudoku Length %d\n", sudCopy.length);
+    sudCopy.sudoku = (int**)**sudokuCopy;
+}
+
+
+int sudokuSolver(struct Sudoku sud, int row, int col){
+
+      if(sud.sudoku[row][col] != 0){
+        if(col + 1 < sud.length){
+          if(sudokuSolver(sud, row, col+1)){
+            return 1;
+          }
+          else{
+            return 0;
+          }
+        }
+        else{
+          if(row+1 < sud.length){
+            if(sudokuSolver(sud, row + 1, 0)){
+              return 1;
+            }
+            else{
+              return 0;
+            }
+          }
+            else{
+              printf("%s\n", "Found solution and last cell was non empty");
+              solutionCounter += 1;
+              if(solutionCounter == 1){
+                copySolutionFound(sud);
+              }
+              /*
+              for(int i = 0; i < sud.length; i++){
+                for(int j = 0; j < sud.length; j++){
+                  printf("%d ", sud.sudoku[i][j]);
+                }
+                printf("\n");
+              }
+              */
+              return 0;
+            }
+          }
+        }
+
+
+    else{
+      for(int i = 0; i < sud.length; i++){
+        int valueToPass = i + 1;
+        if(cellAccepted(sud, row, col, valueToPass)){
+          sud.sudoku[row][col] = valueToPass;
+          if(col + 1<sud.length){
+            if(sudokuSolver(sud, row, col+1)){
+              return 1;
+            }
+            else{
+              sud.sudoku[row][col] = 0;
+            }
+          }
+          else if(row+1<sud.length){
+            if(sudokuSolver(sud, row + 1, 0)){
+              return 1;
+            }
+            else{
+              sud.sudoku[row][col] = 0;
+            }
+          }
+          else{
+            printf("%s\n", "Found solution and last cell was empty");
+            solutionCounter+=1;
+            if(solutionCounter == 1){
+              copySolutionFound(sud);
+            }
+            /*
+            for(int m = 0; m < sud.length; m++){
+              for(int n = 0; n < sud.length; n++){
+                printf("%d ", sud.sudoku[m][n]);
+              }
+              printf("\n");
+            }
+            */
+            return 0;
+          }
+
+        }
+
+      }
+    }
+    return 0;
+}
+
+void decisionToPrint(){
+  if(solutionCounter == 1){
+    printSudoku(sudCopy);
+  }
+  else if(solutionCounter > 1){
+    printf("%s\n", "MULTIPLE");
+  }
+  else{
+    printf("%s\n", "UNSOLVABLE");
+  }
+}
+
+
+
+
+
+
+int main (int argc, char *argv[]){
+  //int ans = cellAccepted(parseSudoku(argv[1]), 7, 4, 25);
+  //printSudoku(parseSudoku(argv[1]));
+  //printf("%d\n", ans);
+
+  int sudokuSolve = sudokuSolver(parseSudoku(argv[1]), 0, 0);
+
+  printf("Solutions found %d\n", solutionCounter);
+
+  //printf("%s\n", );
+
+
+
+  printf("L : %d\n", sudCopy.length);
+
+
+
+
+}
+
+
+3
+  0 8 0 0 0 9 7 4 3
+  0 5 0 0 0 8 0 1 0
+  0 1 0 0 0 0 0 0 0
+  8 0 0 0 0 5 0 0 0
+  0 0 0 8 0 4 0 0 0
+  0 0 0 3 0 0 0 0 6
+  0 0 0 0 0 0 0 7 0
+  0 3 0 5 0 0 0 8 0
+  9 7 2 4 0 0 0 5 0
